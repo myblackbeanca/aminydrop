@@ -6,7 +6,7 @@ const stripe = new Stripe('sk_test_51PECm7I38Ba0SBvHrguPAAdVdurKWdwXurP1cAntoe3r
 
 export async function POST(request: Request) {
   try {
-    const { amount, quantity, designFee } = await request.json();
+    const { amount, quantity, designFee, designUrl } = await request.json();
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount,

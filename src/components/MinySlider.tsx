@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Upload, DollarSign, Calculator, Info } from 'lucide-react';
+import { storage } from "../../firebase/config";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 declare const Stripe: any;
 
-const stripe = Stripe('pk_test_51PECm7I38Ba0SBvH8MDMi6GjUJoVklJgilsuRMnEDAi9at26QelrjNnQJU46TUH9qUTzcZTE8eAsRgylCuZRQtn900aAlx25tp');
+const stripe = Stripe('pk_test_51PECm7I38Ba0SBvH8MDMi6GjUJoVklJgilsuRMnEDAi9at26QelrjNnQJU46TUH9qUTzcZTE8eAsRgylCuZRQtn900aAlx25tp'); // Replace with your Stripe publishable key
 
 const dropTypes = [
   'Exclusive Event Page',
@@ -18,14 +20,29 @@ export const MinySlider: React.FC = () => {
   const [quantity, setQuantity] = useState(20);
   const [designFee, setDesignFee] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null); // Store the image URL
   const [loading, setLoading] = useState(false);
   const [selectedDropType, setSelectedDropType] = useState('');
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+      const uploadedFile = e.target.files[0];
+      setFile(uploadedFile);
+
+      try {
+        const storageRef = ref(storage, `miny-designs/${uploadedFile.name}`);
+        await uploadBytes(storageRef, uploadedFile);
+        const downloadURL = await getDownloadURL(storageRef);
+        setImageUrl(downloadURL);
+        console.log("Image URL:", downloadURL); 
+      } catch (error) {
+        console.error("Error uploading image:", error);
+        // Handle error, e.g., show an error message to the user
+      }
     }
   };
+
 
   const totalCost = (quantity * 4.99) + (designFee ? 1000 : 0);
 
@@ -34,10 +51,15 @@ export const MinySlider: React.FC = () => {
       alert('Please select a MINY drop type');
       return;
     }
+    if (!file) {
+      alert('Please upload a MINY design');
+      return;
+    }
+
 
     try {
       setLoading(true);
-      
+
       const response = await fetch('/api/create-payment-intent', {
         method: 'POST',
         headers: {
@@ -47,7 +69,8 @@ export const MinySlider: React.FC = () => {
           amount: Math.round(totalCost * 100),
           quantity,
           designFee,
-          dropType: selectedDropType
+          dropType: selectedDropType,
+          imageUrl: imageUrl, // Include the image URL in the request
         }),
       });
 
