@@ -119,7 +119,7 @@ export const MinySlider: React.FC = () => {
                 <div className="relative ml-2">
                   <Info className="h-4 w-4 text-gray-400" />
                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 p-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition pointer-events-none">
-                    Choose the type of experience you want to create for your fans
+                    Choose the type of experience you want to create for your super fans
                   </div>
                 </div>
               </label>
